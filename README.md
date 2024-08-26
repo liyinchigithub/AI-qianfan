@@ -4,8 +4,8 @@
 
 [SDK文档](https://cloud.baidu.com/doc/WENXINWORKSHOP/s/7lq3ft3pb)
 
-![image](https://github.com/user-attachments/assets/fb71c822-56ca-48c3-a452-a8651208069f)
 
+![image](https://github.com/user-attachments/assets/93692d91-b800-4404-ad0b-b702e730ff11)
 
 # 环境要求
 |环境|版本|
