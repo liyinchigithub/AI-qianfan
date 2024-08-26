@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>问答页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            height: 100vh; /* 使 body 填充整个视口高度 */
+            margin: 0; /* 去掉默认边距 */
+        }
+        .chat-container {
+            display: flex;
+            flex-direction: column; /* 使子元素垂直排列 */
+            height: 100%; /* 使 chat-container 填充整个父元素 */
+            width: 80%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+        .chat-box {
+            flex: 1; /* 使 chat-box 占据剩余空间 */
+            overflow-y: scroll;
+            border: 1px solid #ccc;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #e5e5e5;
+        }
+        .message {
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .message.user {
+            text-align: right;
+            background-color: #dcf8c6;
+            margin-left: auto;
+        }
+        .message.bot {
+            text-align: left;
+            background-color: #fff;
+            margin-right: auto;
+        }
+        .input-container {
+            display: flex;
+            position: absolute; /* 改为绝对定位 */
+            bottom: 0; /* 固定在底部 */
+            left: 0; /* 从左侧开始 */
+            right: 0; /* 从右侧结束 */
+            padding: 10px; /* 添加内边距 */
+            background-color: white; /* 背景颜色 */
+            border-top: 1px solid #ccc; /* 顶部边框 */
+        }
+        .input-container input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        .input-container button {
+            padding: 10px;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            border-radius: 5px;
+            margin-left: 10px;
+            cursor: pointer;
+        }
+        .loading {
+            text-align: center;
+            font-size: 18px;
+            color: #007BFF;
+            animation: blink 1.5s step-start 0s infinite;
+        }
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+        /* Media query for mobile devices */
+        @media (max-width: 600px) {
+            .chat-container {
+                width: 100%;
+                padding: 10px;
+            }
+            .chat-box {
+                height: 300px;
+            }
+            .input-container input, .input-container button {
+                padding: 8px;
+            }
+            .input-container button {
+                margin-left: 5px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-box" id="chat-box"></div>
+        <div class="loading" id="loading" style="display: none;">加载中...</div>
+        <div class="input-container">
+            <input type="text" id="user-input" placeholder="输入你的问题..." onkeydown="checkEnter(event)">
+            <button onclick="sendMessage()">发送</button>
+        </div>
+    </div>
+
+    <script>
+        function checkEnter(event) {
+            if (event.key === 'Enter') {
+                sendMessage();
+            }
+        }
+
+        function sendMessage() {
+            const userInput = document.getElementById('user-input');
+            const message = userInput.value;
+            if (message.trim() === '') return;
+
+            appendMessage('user', '你: ' + message);
+            userInput.value = '';
+
+            const loading = document.getElementById('loading');
+            loading.style.display = 'block';
+
+            fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ message: message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = 'none';
+                appendMessage('bot', formatMessage(data.result));
+            })
+            .catch(error => {
+                loading.style.display = 'none';
+                console.error('Error:', error);
+            });
+        }
+
+        function appendMessage(role, content) {
+            const chatBox = document.getElementById('chat-box');
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message', role);
+            messageDiv.innerHTML = content;
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function formatMessage(message) {
+            // 将换行符替换为 <br> 标签
+            message = message.replace(/\n/g, '<br>');
+
+            // 将项目符号替换为有序列表
+            message = message.replace(/\* /g, '<li>').replace(/<\/li><br>/g, '</li>');
+
+            // 包装在 <ul> 标签中
+            message = message.replace(/<li>/, '<ul><li>').replace(/<\/li>$/, '</li></ul>');
+
+            return '【AI回答】: ' + message;
+        }
+    </script>
+</body>
+</html>
